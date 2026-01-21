@@ -2,16 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace ZooManagementApp
 {
-    // ==========================================
-    // 1. МОДЕЛІ ДАНИХ (ООП + Успадкування)
-    // ==========================================
-
-    // Базовий клас
     abstract class Animal
     {
         public int Id { get; set; }
@@ -25,407 +19,398 @@ namespace ZooManagementApp
             Weight = weight;
         }
 
-        // Абстрактні методи
-        public abstract double CalculateFood();
-        public abstract string MakeSound();
+        public abstract double Calc();
 
-        // Віртуальний метод для запису у CSV (Базова частина)
-        // Формат: Id,Type,Name,Weight
-        public virtual string ToCsv()
+        public virtual string ToStr()
         {
             return $"{Id},{GetType().Name},{Name},{Weight}";
         }
 
-        // Віртуальний метод для виводу інформації
-        public virtual string GetInfo()
+        public virtual string Info()
         {
             return $"ID: {Id} | {Name}";
         }
     }
 
-    // Лев
     class Lion : Animal
     {
         public Lion(int id, string name, double weight) : base(id, name, weight) { }
-
-        public override double CalculateFood() => Weight * 0.05; // 5%
-        public override string MakeSound() => "Рррр-арр!";
-
-        // У лева немає додаткових унікальних полів для CSV, тому просто викликаємо базу + пусте поле
-        public override string ToCsv() => base.ToCsv() + ",";
-        public override string GetInfo() => base.GetInfo() + " (Лев 🦁)";
+        public override double Calc() => Weight * 0.05;
+        public override string ToStr() => base.ToStr() + ",";
+        public override string Info() => base.Info() + " (Лев)";
     }
 
-    // Слон
     class Elephant : Animal
     {
-        public double TrunkLength { get; set; } // Унікальне поле
-
-        public Elephant(int id, string name, double weight, double trunkLength) : base(id, name, weight)
-        {
-            TrunkLength = trunkLength;
-        }
-
-        public override double CalculateFood() => Weight * 0.10;
-        public override string MakeSound() => "Ту-ру-ру!";
-
-        // Додаємо TrunkLength у CSV
-        public override string ToCsv() => base.ToCsv() + $",{TrunkLength}";
-        public override string GetInfo() => base.GetInfo() + $" (Слон 🐘) Хобот: {TrunkLength}м";
+        public double Prop { get; set; }
+        public Elephant(int id, string name, double weight, double prop) : base(id, name, weight) { Prop = prop; }
+        public override double Calc() => Weight * 0.10;
+        public override string ToStr() => base.ToStr() + $",{Prop}";
+        public override string Info() => base.Info() + $" (Слон) Хобот: {Prop}м";
     }
 
-    // Папуга
     class Parrot : Animal
     {
-        public string Color { get; set; }
-
-        public Parrot(int id, string name, double weight, string color) : base(id, name, weight)
-        {
-            Color = color;
-        }
-
-        public override double CalculateFood() => 0.1;
-        public override string MakeSound() => "Піастри!";
-
-        public override string ToCsv() => base.ToCsv() + $",{Color}";
-        public override string GetInfo() => base.GetInfo() + $" (Папуга 🦜) Колір: {Color}";
+        public string Prop { get; set; }
+        public Parrot(int id, string name, double weight, string prop) : base(id, name, weight) { Prop = prop; }
+        public override double Calc() => 0.1;
+        public override string ToStr() => base.ToStr() + $",{Prop}";
+        public override string Info() => base.Info() + $" (Папуга) Колір: {Prop}";
     }
 
-    // Жираф
     class Giraffe : Animal
     {
-        public double NeckLength { get; set; }
-
-        public Giraffe(int id, string name, double weight, double neckLength) : base(id, name, weight)
-        {
-            NeckLength = neckLength;
-        }
-
-        public override double CalculateFood() => Weight * 0.08;
-        public override string MakeSound() => "Хрум-хрум";
-
-        public override string ToCsv() => base.ToCsv() + $",{NeckLength}";
-        public override string GetInfo() => base.GetInfo() + $" (Жираф 🦒) Шия: {NeckLength}м";
+        public double Prop { get; set; }
+        public Giraffe(int id, string name, double weight, double prop) : base(id, name, weight) { Prop = prop; }
+        public override double Calc() => Weight * 0.08;
+        public override string ToStr() => base.ToStr() + $",{Prop}";
+        public override string Info() => base.Info() + $" (Жираф) Шия: {Prop}м";
     }
 
-    // Пінгвін
     class Penguin : Animal
     {
-        public string Rank { get; set; }
-
-        public Penguin(int id, string name, double weight, string rank) : base(id, name, weight)
-        {
-            Rank = rank;
-        }
-
-        public override double CalculateFood() => Weight * 0.15;
-        public override string MakeSound() => "Посміхаємось і махаємо!";
-
-        public override string ToCsv() => base.ToCsv() + $",{Rank}";
-        public override string GetInfo() => base.GetInfo() + $" (Пінгвін 🐧) Звання: {Rank}";
+        public string Prop { get; set; }
+        public Penguin(int id, string name, double weight, string prop) : base(id, name, weight) { Prop = prop; }
+        public override double Calc() => Weight * 0.15;
+        public override string ToStr() => base.ToStr() + $",{Prop}";
+        public override string Info() => base.Info() + $" (Пінгвін) Звання: {Prop}";
     }
 
-    // Модель Користувача
-    class User
+    static class Data
     {
-        public int Id { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
+        private static string f1 = "animals.csv";
+        private static string f2 = "users.csv";
 
-        public string ToCsv() => $"{Id},{Email},{Password}";
-    }
-
-    // ==========================================
-    // 2. ФАЙЛОВА БАЗА ДАНИХ (CSV Manager)
-    // ==========================================
-    static class FileDatabase
-    {
-        private static string animalsFile = "animals.csv";
-        private static string usersFile = "users.csv";
-
-        public static void Initialize()
+        public static void Init()
         {
-            if (!File.Exists(animalsFile))
-                File.WriteAllText(animalsFile, "Id,Type,Name,Weight,ExtraData\n", Encoding.UTF8);
-
-            if (!File.Exists(usersFile))
+            if (!File.Exists(f1))
             {
-                File.WriteAllText(usersFile, "Id,Email,Password\n", Encoding.UTF8);
-                File.AppendAllText(usersFile, "1,admin,admin\n", Encoding.UTF8);
+                File.WriteAllText(f1, "Id,Type,Name,Weight,Extra\n", Encoding.UTF8);
+            }
+            if (!File.Exists(f2))
+            {
+                File.WriteAllText(f2, "Id,Email,Password\n", Encoding.UTF8);
+                File.AppendAllText(f2, "1,admin,admin\n", Encoding.UTF8);
             }
         }
 
-        public static int GenerateId(string filePath)
+        public static int GetId(string path)
         {
-            if (!File.Exists(filePath)) return 1;
-            var lines = File.ReadAllLines(filePath);
-            if (lines.Length <= 1) return 1;
-
-            int maxId = 0;
-            foreach (var line in lines.Skip(1))
+            if (!File.Exists(path)) return 1;
+            string[] rows = File.ReadAllLines(path);
+            if (rows.Length < 2) return 1;
+            int max = 0;
+            for (int i = 1; i < rows.Length; i++)
             {
-                var parts = line.Split(',');
-                if (int.TryParse(parts[0], out int id) && id > maxId) maxId = id;
+                string r = rows[i];
+                if (string.IsNullOrWhiteSpace(r)) continue;
+                string[] s = r.Split(',');
+                if (int.TryParse(s[0], out int curr))
+                {
+                    if (curr > max) max = curr;
+                }
             }
-            return maxId + 1;
+            return max + 1;
         }
 
-        // --- Читання тварин (Factory Method Pattern) ---
-        public static List<Animal> LoadAnimals()
+        public static List<Animal> Read()
         {
-            var list = new List<Animal>();
-            if (!File.Exists(animalsFile)) return list;
-
-            var lines = File.ReadAllLines(animalsFile, Encoding.UTF8);
-            foreach (var line in lines.Skip(1))
+            List<Animal> list = new List<Animal>();
+            if (!File.Exists(f1)) return list;
+            string[] rows = File.ReadAllLines(f1, Encoding.UTF8);
+            for (int i = 1; i < rows.Length; i++)
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                var parts = line.Split(',');
-                if (parts.Length < 4) continue;
-
+                string r = rows[i];
+                if (string.IsNullOrWhiteSpace(r)) continue;
+                string[] s = r.Split(',');
+                if (s.Length < 4) continue;
                 try
                 {
-                    int id = int.Parse(parts[0]);
-                    string type = parts[1];
-                    string name = parts[2];
-                    double weight = double.Parse(parts[3]);
-                    string extra = parts.Length > 4 ? parts[4] : "";
-
-                    // Створення конкретного класу залежно від Типу
-                    Animal animal = null;
+                    int id = int.Parse(s[0]);
+                    string type = s[1];
+                    string name = s[2];
+                    double w = double.Parse(s[3]);
+                    string ext = s.Length > 4 ? s[4] : "";
+                    Animal obj = null;
                     switch (type)
                     {
-                        case nameof(Lion):
-                            animal = new Lion(id, name, weight);
+                        case "Lion": obj = new Lion(id, name, w); break;
+                        case "Elephant":
+                            double.TryParse(ext, out double t);
+                            obj = new Elephant(id, name, w, t);
                             break;
-                        case nameof(Elephant):
-                            double trunk = double.TryParse(extra, out double t) ? t : 0;
-                            animal = new Elephant(id, name, weight, trunk);
+                        case "Parrot": obj = new Parrot(id, name, w, ext); break;
+                        case "Giraffe":
+                            double.TryParse(ext, out double n);
+                            obj = new Giraffe(id, name, w, n);
                             break;
-                        case nameof(Parrot):
-                            animal = new Parrot(id, name, weight, extra);
-                            break;
-                        case nameof(Giraffe):
-                            double neck = double.TryParse(extra, out double n) ? n : 0;
-                            animal = new Giraffe(id, name, weight, neck);
-                            break;
-                        case nameof(Penguin):
-                            animal = new Penguin(id, name, weight, extra);
-                            break;
+                        case "Penguin": obj = new Penguin(id, name, w, ext); break;
                     }
-
-                    if (animal != null) list.Add(animal);
+                    if (obj != null) list.Add(obj);
                 }
                 catch { continue; }
             }
             return list;
         }
 
-        // --- Запис тварини ---
-        public static void AddAnimal(Animal animal)
+        public static void Add(Animal obj)
         {
-            // Оновлюємо ID
-            animal.Id = GenerateId(animalsFile);
-            File.AppendAllText(animalsFile, animal.ToCsv() + "\n", Encoding.UTF8);
+            obj.Id = GetId(f1);
+            File.AppendAllText(f1, obj.ToStr() + "\n", Encoding.UTF8);
         }
 
-        // --- Видалення ---
-        public static void DeleteAnimal(int id)
+        // НОВИЙ МЕТОД: Оновлення існуючого запису
+        public static void Update(Animal obj)
         {
-            var animals = LoadAnimals();
-            var toDelete = animals.FirstOrDefault(a => a.Id == id);
-            if (toDelete != null)
+            List<Animal> list = Read();
+            for (int i = 0; i < list.Count; i++)
             {
-                animals.Remove(toDelete);
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("Id,Type,Name,Weight,ExtraData");
-                foreach (var a in animals) sb.AppendLine(a.ToCsv());
-                File.WriteAllText(animalsFile, sb.ToString(), Encoding.UTF8);
-                Console.WriteLine("Видалено!");
+                if (list[i].Id == obj.Id)
+                {
+                    list[i] = obj;
+                    break;
+                }
             }
-            else Console.WriteLine("ID не знайдено.");
+            List<string> text = new List<string> { "Id,Type,Name,Weight,Extra" };
+            foreach (var item in list) text.Add(item.ToStr());
+            File.WriteAllLines(f1, text, Encoding.UTF8);
         }
 
-        // --- Авторизація ---
-        public static bool Register(string email, string pass)
+        public static void Del(int id)
         {
-            var lines = File.ReadAllLines(usersFile);
-            foreach (var l in lines.Skip(1))
-                if (l.Split(',')[1] == email) return false;
-
-            User u = new User { Id = GenerateId(usersFile), Email = email, Password = pass };
-            File.AppendAllText(usersFile, u.ToCsv() + "\n", Encoding.UTF8);
-            return true;
-        }
-
-        public static bool Login(string email, string pass)
-        {
-            var lines = File.ReadAllLines(usersFile);
-            foreach (var l in lines.Skip(1))
+            List<Animal> list = Read();
+            Animal found = list.Find(x => x.Id == id);
+            if (found != null)
             {
-                var p = l.Split(',');
-                if (p.Length >= 3 && p[1] == email && p[2] == pass) return true;
+                list.Remove(found);
+                List<string> text = new List<string> { "Id,Type,Name,Weight,Extra" };
+                foreach (var item in list) text.Add(item.ToStr());
+                File.WriteAllLines(f1, text, Encoding.UTF8);
+                Console.WriteLine("Видалено.");
+            }
+            else Console.WriteLine("Не знайдено.");
+        }
+
+        public static bool CheckUser(string l, string p)
+        {
+            if (!File.Exists(f2)) return false;
+            string[] rows = File.ReadAllLines(f2);
+            for (int i = 1; i < rows.Length; i++)
+            {
+                string[] s = rows[i].Split(',');
+                if (s.Length >= 3 && s[1] == l && s[2] == p) return true;
             }
             return false;
         }
+
+        public static bool AddUser(string l, string p)
+        {
+            if (!File.Exists(f2)) return false;
+            string[] rows = File.ReadAllLines(f2);
+            foreach (var r in rows)
+            {
+                string[] s = r.Split(',');
+                if (s.Length > 1 && s[1] == l) return false;
+            }
+            int id = GetId(f2);
+            File.AppendAllText(f2, $"{id},{l},{p}\n", Encoding.UTF8);
+            return true;
+        }
+
+        public static void StartData()
+        {
+            if (GetId("animals.csv") == 1)
+            {
+                Add(new Lion(0, "Алекс", 220));
+                Add(new Elephant(0, "Дамбо", 200, 0.5));
+                Add(new Parrot(0, "Яго", 0.6, "Червоний"));
+                Add(new Giraffe(0, "Мелман", 1200, 2.8));
+                Add(new Penguin(0, "Шкіпер", 15, "Капітан"));
+            }
+        }
     }
 
-    // ==========================================
-    // 3. ІНТЕРФЕЙС (UI)
-    // ==========================================
     class Program
     {
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "Cartoon Zoo + Auth (Lab 5)";
-            FileDatabase.Initialize();
+            Data.Init();
+            Data.StartData();
 
-            // Перевірка наявності мультяшних даних при першому запуску
-            SeedInitialData();
+            if (!LoginMenu()) return;
 
-            if (!AuthMenu()) return;
-
-            bool isRunning = true;
-            while (isRunning)
+            bool run = true;
+            while (run)
             {
-                ShowMenu();
-                string input = Console.ReadLine();
-                switch (input)
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("=== MENU ===");
+                Console.ResetColor();
+                Console.WriteLine("1. Таблиця");
+                Console.WriteLine("2. Додати");
+                Console.WriteLine("3. Видалити");
+                Console.WriteLine("4. Редагувати"); // Додано пункт
+                Console.WriteLine("5. Статистика");
+                Console.WriteLine("0. Вихід");
+                Console.Write("> ");
+
+                string k = Console.ReadLine();
+                switch (k)
                 {
-                    case "1": ShowTable(); break;
-                    case "2": AddMenu(); break;
-                    case "3": ListenMenu(); break;
-                    case "4": DeleteMenu(); break;
-                    case "5": StatisticsMenu(); break;
-                    case "0": isRunning = false; break;
-                    default: Console.WriteLine("???"); break;
+                    case "1": Table(); break;
+                    case "2": Add(); break;
+                    case "3": Del(); break;
+                    case "4": Edit(); break; // Новий метод
+                    case "5": Stat(); break;
+                    case "0": run = false; break;
+                    default: Console.WriteLine("Error"); break;
                 }
-                if (isRunning) { Console.WriteLine("\n[Enter]..."); Console.ReadLine(); }
+
+                if (run)
+                {
+                    Console.WriteLine("\nEnter...");
+                    Console.ReadLine();
+                }
             }
         }
 
-        static void SeedInitialData()
-        {
-            // Якщо база порожня (тільки шапка), додамо стартових героїв
-            if (FileDatabase.GenerateId("animals.csv") == 1)
-            {
-                FileDatabase.AddAnimal(new Lion(0, "Алекс", 220));
-                FileDatabase.AddAnimal(new Elephant(0, "Дамбо", 200, 0.5));
-                FileDatabase.AddAnimal(new Parrot(0, "Яго", 0.6, "Червоний"));
-                FileDatabase.AddAnimal(new Giraffe(0, "Мелман", 1200, 2.8));
-                FileDatabase.AddAnimal(new Penguin(0, "Шкіпер", 15, "Капітан"));
-            }
-        }
-
-        static bool AuthMenu()
+        static bool LoginMenu()
         {
             while (true)
             {
                 Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("=== ВХІД / РЕЄСТРАЦІЯ ===");
-                Console.ResetColor();
-                Console.WriteLine("1. Вхід (admin/admin)");
-                Console.WriteLine("2. Реєстрація");
-                Console.WriteLine("0. Вихід");
+                Console.WriteLine("1. Вхід\n2. Реєстрація\n0. Вихід");
                 Console.Write("> ");
-                string c = Console.ReadLine();
-                if (c == "0") return false;
+                string k = Console.ReadLine();
+                if (k == "0") return false;
 
-                Console.Write("Email: "); string e = Console.ReadLine();
+                Console.Write("Email: "); string l = Console.ReadLine();
                 Console.Write("Pass: "); string p = Console.ReadLine();
 
-                if (c == "1" && FileDatabase.Login(e, p)) return true;
-                if (c == "2")
+                if (k == "1")
                 {
-                    if (FileDatabase.Register(e, p)) Console.WriteLine("OK! Входьте.");
-                    else Console.WriteLine("Email зайнятий.");
+                    if (Data.CheckUser(l, p)) return true;
+                    else Console.WriteLine("No");
                 }
-                else Console.WriteLine("Помилка.");
+                else if (k == "2")
+                {
+                    if (Data.AddUser(l, p)) Console.WriteLine("OK");
+                    else Console.WriteLine("Error");
+                }
                 Console.ReadLine();
             }
         }
 
-        static void ShowMenu()
+        static void Table()
         {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== CARTOON ZOO MANAGER ===");
-            Console.ResetColor();
-            Console.WriteLine("1. 📋 Таблиця (Всі тварини)");
-            Console.WriteLine("2. ➕ Додати тварину");
-            Console.WriteLine("3. 🔊 Звуки");
-            Console.WriteLine("4. ❌ Видалити");
-            Console.WriteLine("5. 📊 Статистика");
-            Console.WriteLine("0. 🚪 Вихід");
-            Console.Write("> ");
-        }
-
-        static void ShowTable()
-        {
-            var animals = FileDatabase.LoadAnimals();
-            Console.WriteLine("--------------------------------------------------------------------------");
-            Console.WriteLine("| {0,-3} | {1,-35} | {2,10} | {3,15} |", "ID", "Інфо", "Вага", "Їжа");
-            Console.WriteLine("--------------------------------------------------------------------------");
-            foreach (var a in animals)
+            List<Animal> list = Data.Read();
+            Console.WriteLine("--- LIST ---");
+            foreach (var item in list)
             {
-                Console.WriteLine("| {0,-3} | {1,-35} | {2,10} | {3,15:F2} |",
-                    a.Id, a.GetInfo(), a.Weight, a.CalculateFood());
+                Console.WriteLine("| {0,-3} | {1,-35} | {2,8} | {3,10:F2} |",
+                    item.Id, item.Info(), item.Weight, item.Calc());
             }
         }
 
-        static void AddMenu()
+        static void Add()
         {
-            Console.WriteLine("1-Лев, 2-Слон, 3-Папуга, 4-Жираф, 5-Пінгвін");
-            string type = Console.ReadLine();
-            Console.Write("Ім'я: "); string name = Console.ReadLine();
-            Console.Write("Вага: "); double w = double.Parse(Console.ReadLine());
+            Console.WriteLine("1-Lion, 2-Elephant, 3-Parrot, 4-Giraffe, 5-Penguin");
+            string t = Console.ReadLine();
+            Console.Write("Name: "); string n = Console.ReadLine();
+            Console.Write("Weight: "); double.TryParse(Console.ReadLine(), out double w);
 
-            Animal a = null;
-            switch (type)
+            Animal obj = null;
+            if (t == "1") obj = new Lion(0, n, w);
+            else if (t == "2" || t == "4")
             {
-                case "1": a = new Lion(0, name, w); break;
-                case "2":
-                    Console.Write("Хобот (м): ");
-                    a = new Elephant(0, name, w, double.Parse(Console.ReadLine()));
-                    break;
-                case "3":
-                    Console.Write("Колір: ");
-                    a = new Parrot(0, name, w, Console.ReadLine());
-                    break;
-                case "4":
-                    Console.Write("Шия (м): ");
-                    a = new Giraffe(0, name, w, double.Parse(Console.ReadLine()));
-                    break;
-                case "5":
-                    Console.Write("Звання: ");
-                    a = new Penguin(0, name, w, Console.ReadLine());
-                    break;
+                Console.Write("Prop: "); double p = double.Parse(Console.ReadLine());
+                if (t == "2") obj = new Elephant(0, n, w, p);
+                else obj = new Giraffe(0, n, w, p);
             }
-            if (a != null) { FileDatabase.AddAnimal(a); Console.WriteLine("Збережено!"); }
+            else if (t == "3" || t == "5")
+            {
+                Console.Write("Prop: "); string p = Console.ReadLine();
+                if (t == "3") obj = new Parrot(0, n, w, p);
+                else obj = new Penguin(0, n, w, p);
+            }
+
+            if (obj != null) Data.Add(obj);
         }
 
-        static void ListenMenu()
+        // НОВИЙ МЕТОД: Редагування
+        static void Edit()
         {
-            foreach (var a in FileDatabase.LoadAnimals())
-                Console.WriteLine($"{a.Name}: {a.MakeSound()}");
+            Table();
+            Console.Write("ID для редагування: ");
+            if (int.TryParse(Console.ReadLine(), out int id))
+            {
+                List<Animal> list = Data.Read();
+                Animal old = list.Find(x => x.Id == id);
+                if (old == null) { Console.WriteLine("Не знайдено."); return; }
+
+                Console.WriteLine("Введіть нові дані (залиште порожнім, щоб не змінювати):");
+                Console.Write($"Name ({old.Name}): ");
+                string n = Console.ReadLine();
+                if (string.IsNullOrEmpty(n)) n = old.Name;
+
+                Console.Write($"Weight ({old.Weight}): ");
+                string wS = Console.ReadLine();
+                double w = string.IsNullOrEmpty(wS) ? old.Weight : double.Parse(wS);
+
+                Animal obj = null;
+                if (old is Lion) obj = new Lion(id, n, w);
+                else if (old is Elephant e)
+                {
+                    Console.Write($"Prop ({e.Prop}): ");
+                    string pS = Console.ReadLine();
+                    double p = string.IsNullOrEmpty(pS) ? e.Prop : double.Parse(pS);
+                    obj = new Elephant(id, n, w, p);
+                }
+                else if (old is Parrot pa)
+                {
+                    Console.Write($"Prop ({pa.Prop}): ");
+                    string p = Console.ReadLine();
+                    if (string.IsNullOrEmpty(p)) p = pa.Prop;
+                    obj = new Parrot(id, n, w, p);
+                }
+                else if (old is Giraffe g)
+                {
+                    Console.Write($"Prop ({g.Prop}): ");
+                    string pS = Console.ReadLine();
+                    double p = string.IsNullOrEmpty(pS) ? g.Prop : double.Parse(pS);
+                    obj = new Giraffe(id, n, w, p);
+                }
+                else if (old is Penguin pe)
+                {
+                    Console.Write($"Prop ({pe.Prop}): ");
+                    string p = Console.ReadLine();
+                    if (string.IsNullOrEmpty(p)) p = pe.Prop;
+                    obj = new Penguin(id, n, w, p);
+                }
+
+                if (obj != null)
+                {
+                    Data.Update(obj);
+                    Console.WriteLine("Оновлено.");
+                }
+            }
         }
 
-        static void DeleteMenu()
+        static void Del()
         {
-            ShowTable();
-            Console.Write("ID > ");
-            if (int.TryParse(Console.ReadLine(), out int id)) FileDatabase.DeleteAnimal(id);
+            Table();
+            Console.Write("ID: ");
+            if (int.TryParse(Console.ReadLine(), out int id)) Data.Del(id);
         }
 
-        static void StatisticsMenu()
+        static void Stat()
         {
-            var list = FileDatabase.LoadAnimals();
+            List<Animal> list = Data.Read();
             if (list.Count == 0) return;
-            Console.WriteLine($"Всього: {list.Count}");
-            Console.WriteLine($"Загальна вага: {list.Sum(x => x.Weight)} кг");
-            Console.WriteLine($"Корм на день: {list.Sum(x => x.CalculateFood()):F2} кг");
+            double s1 = 0, s2 = 0;
+            foreach (var item in list) { s1 += item.Calc(); s2 += item.Weight; }
+            Console.WriteLine($"Count: {list.Count}\nTotal W: {s2}\nTotal F: {s1:F2}\nAvg F: {s1 / list.Count:F2}");
         }
     }
 }
